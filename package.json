@@ -18,6 +18,9 @@
     "express": "^4.17.1",
     "mocha": "^8.2.1",
     "mockgoose": "^8.0.4",
+    "mongoose": "^5.11.11",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.3.5",
     "sinon": "^9.2.3",
     "supertest": "^6.0.1"
   },
