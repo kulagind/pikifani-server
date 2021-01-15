@@ -1,7 +1,7 @@
 import { Variables } from './../interfaces/variables';
 
 const variables: Variables = {
-    MONGODB_URI: ``,
+    MONGODB_URI: 'mongodb://localhost:27017/pikifani',
     SESSION_SECRET: 'some secret value',
     SENDGRID_API_KEY: '',
     EMAIL_FROM: 'd1mka.47@yandex.ru',

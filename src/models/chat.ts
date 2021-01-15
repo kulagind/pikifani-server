@@ -4,26 +4,33 @@ import express, { Application, Request, Response } from 'express';
 const app: Application = express();
 
 export class Chat {
-    public static res: Response;
+    public static connections = new Map<number, Response[]>();
 
     public static create(url: string): Application {
         return app.get(url, (req: Request, res: Response) => {
-            this.res = res;
+            const id: number = +req.params.id;
 
             res.writeHead(200, {
                 "Content-Type": "text/event-stream",
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive"
             });
-    
-            res.on('close', () => {
-                res.end();
-            });
+
+            if (!this.connections.has(id)) {
+                Chat.connections.set(id, [res]);
+            } else {
+                const responses = Chat.connections.get(id) || [];
+                Chat.connections.set(id, [...responses, res]);
+            }
         });
     }
 
-    public static sendMessage(message: SSEMessage): void {
-        this.res.write(`data: ${JSON.stringify(message)}\n\n`);
+    public static sendMessage(connectionId: number, message: SSEMessage): void {
+        if (this.connections.has(connectionId)) {
+            this.connections.get(connectionId)?.forEach(res => {
+                res.write(`data: ${JSON.stringify(message)}\n\n`);
+            });
+        }
     }
 }
 
