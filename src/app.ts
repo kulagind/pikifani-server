@@ -1,7 +1,8 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application } from 'express';
 import mongoose from 'mongoose';
 import VARIABLES from './var/var';
 import wordRoutes from './routes/word';
+import authRoutes from './routes/auth';
 import bodyParser from 'body-parser';
 import { Chat, Message } from './models/chat';
 
@@ -11,7 +12,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 app.use('/api/word', wordRoutes);
-// app.use('/api/chat', chatRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use(Chat.create('/api/sse/:id'));
 
