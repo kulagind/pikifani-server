@@ -1,5 +1,9 @@
 import { Document } from 'mongoose';
 
+export interface FromDB {
+    _doc: any
+}
+
 export interface UserDB extends Document {
     name: string,
     password: string,

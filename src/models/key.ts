@@ -1,47 +1,72 @@
-import cryptico from 'cryptico';
+// @ts-ignore
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 
-export class Key {
-    private static active = new Map<string, any>();
+export class Encrypter {
+    private static active = new Map<string, Encrypter>();
 
     private publicKey: string;
-    private privateKey: any;
+    private privateKey: string;
+    private phrase: string;
 
     constructor() {
-        const phrase: string = fs.readFileSync(path.join(__dirname, '..', 'assets', 'pass-phrase.txt'), {encoding: 'utf-8'}) + Date.now().toString();
-        this.privateKey = cryptico.generateRSAKey(phrase, 1024);
-        this.publicKey = cryptico.publicKeyString(this.privateKey);
-        Key.init(this.publicKey, this.privateKey);
+        this.phrase = fs.readFileSync(path.join(__dirname, '..', 'assets', 'pass-phrase.txt'), {encoding: 'utf-8'}) + Date.now().toString();
+        const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+            modulusLength: 1024,
+            publicKeyEncoding: {
+              type: 'pkcs1',
+              format: 'pem'
+            },
+            privateKeyEncoding: {
+              type: 'pkcs1',
+              format: 'pem',
+              cipher: 'aes-256-cbc',
+              passphrase: this.phrase
+            }
+        });
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;       
+        
+        // --- Encrypt text as Buffer by publicKey: ---
+        // const text = 'test';
+        // const textBuffer = Buffer.from(text, 'utf-8');
+        // const encryption = crypto.publicEncrypt(this.publicKey, textBuffer);
+
+        Encrypter.init(this);
     }
 
-    public static getInstanceByPublicKey(publicKey: string): Key | null {
-        return Key.active.get(publicKey) || null;
+    public static getInstanceByPublicKey(publicKey: string): Encrypter | null {
+        return Encrypter.active.get(publicKey) || null;
     }
 
-    private static init(publicKey: string, privateKey: any): void {
-        Key.active.set(publicKey, privateKey);
+    private static init(instance: Encrypter): void {
+        Encrypter.active.set(instance.key, instance);
 
         setTimeout(() => {
-            if (Key.active.has(publicKey)) {
-                Key.active.delete(publicKey);
+            if (Encrypter.active.has(instance.key)) {
+                Encrypter.active.delete(instance.key);
             }
         }, 60000);
     }
 
-    decrypt(phrase: string): string | null {
+    decrypt(encryptedBuffer: Buffer): string | null {
         if (this.privateKey) {
-            const result = cryptico.decrypt(phrase, this.privateKey);
-            this.clearKey();
-            return result;
+            const result = crypto.privateDecrypt({
+                key: this.privateKey,
+                passphrase: this.phrase,
+                padding: crypto.constants.RSA_PKCS1_OAEP_PADDING
+            }, encryptedBuffer);
+            return result.toString('utf-8');
         }
         return null;
     }
 
-    private clearKey(): void {
-        Key.active.delete(this.publicKey);
+    clearKey(): void {
+        Encrypter.active.delete(this.publicKey);
         this.privateKey = '';
         this.publicKey = '';
+        this.phrase = '';
     }
 
     get key(): string {
