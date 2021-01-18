@@ -6,6 +6,7 @@ export interface FromDB {
 
 export interface UserDB extends Document {
     name: string,
+    email: string,
     password: string,
     gamesQuantity: number,
     winsQuantity: number,

@@ -26,12 +26,7 @@ export class Encrypter {
             }
         });
         this.privateKey = privateKey;
-        this.publicKey = publicKey;       
-        
-        // --- Encrypt text as Buffer by publicKey: ---
-        // const text = 'test';
-        // const textBuffer = Buffer.from(text, 'utf-8');
-        // const encryption = crypto.publicEncrypt(this.publicKey, textBuffer);
+        this.publicKey = publicKey;
 
         Encrypter.init(this);
     }

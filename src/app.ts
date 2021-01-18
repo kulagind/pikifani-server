@@ -4,7 +4,9 @@ import VARIABLES from './var/var';
 import wordRoutes from './routes/word';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import friendRoutes from './routes/friend';
 import bodyParser from 'body-parser';
+import {auth} from './middlewares/auth';
 import { Chat, Message } from './models/chat';
 
 const app: Application = express();
@@ -12,9 +14,12 @@ const app: Application = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
+app.use(auth);
+
 app.use('/api/word', wordRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/friend', friendRoutes);
 
 app.use(Chat.create('/api/sse/:id'));
 

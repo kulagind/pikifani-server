@@ -1,4 +1,5 @@
-import {Request, Response, Router} from 'express';
+import {NextFunction, Request, Response, Router} from 'express';
+import { nextTick } from 'process';
 import { FromDB } from '../interfaces/mongo-models';
 import { User } from '../models/user';
 import { getUserIdByJWT } from '../utils/jwt';
@@ -7,9 +8,23 @@ import { headerJWT } from './auth';
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-    if (req.header(headerJWT)) {
-        const user: FromDB = await User.findById(getUserIdByJWT(req.header(headerJWT) as string));
-        return res.status(200).json({...user._doc, password: ''});
+    const id = res.locals._id;
+    if (id) {
+        const user: FromDB = await User.findById(id);
+        if (user) {
+            return res.status(200).json({...user._doc, password: ''});
+        }
+    }
+    res.status(200).json({});
+});
+
+router.get('/:id', async (req: Request, res: Response) => {
+    const id = res.locals._id;
+    if (id) {
+        const user: FromDB = await User.findById(req.params.id);
+        if (user) {
+            return res.status(200).json({...user._doc, password: ''});
+        }
     }
     res.status(200).json({});
 });

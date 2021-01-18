@@ -13,6 +13,7 @@ export const registerValidators = [
                 return Promise.reject('Приватный ключ не найден. Возможно срок действия публичного ключа истек, повторите попытку');
             }
         }),
+    body('email', 'Введите корретный Email').isEmail().trim(),
     body('name')
         .isLength({min: 2, max: 18}).withMessage('Имя должно состоять из 2 - 20 символов')
         .custom(async (value: string, {req}) => {
@@ -65,12 +66,18 @@ export const authValidators = [
         }),
     body('name')
         .custom(async (value: string, {req}) => {
-            const user = await User.findOne({
+            const userByName = await User.findOne({
                 name: value
             });
 
-            if (!user) {
-                return Promise.reject('Пользователь с данным именем не существует');
+            if (!userByName) {
+                const userByEmail = await User.findOne({
+                    email: value
+                });
+
+                if (!userByEmail) {
+                    return Promise.reject('Пользователь с данным именем или email не существует');
+                }
             }
         }),
     body('password').custom(async (value, {req}) => {
@@ -80,9 +87,15 @@ export const authValidators = [
         }
 
         const password = encrypter.decrypt(Buffer.from(value, 'base64')) || '';
-        const user = await User.findOne({
+        let user = await User.findOne({
             name: req.body.name
         });
+
+        if (!user) {
+            user = await User.findOne({
+                email: req.body.name
+            });
+        }
 
         const areSamePasswords = await bcryptjs.compare(password, user.password);
 

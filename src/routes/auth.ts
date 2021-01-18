@@ -16,12 +16,11 @@ export const headerJWT = 'x-jwt';
 
 router.post('/register', registerValidators, async (req: Request, res: Response) => {
     try {
-        let {name, password, publicKey} = req.body;
+        let {name, email, password, publicKey} = req.body;
 
         const errors = validationResult(req);
-        console.log(errors);
         if (!errors.isEmpty()) {
-            return res.status(422).json(errors);
+            return res.status(422).json(sendError(422, errors.array()[0].msg));
         }
 
         const encrypter = Encrypter.getInstanceByPublicKey(publicKey) as Encrypter;
@@ -31,6 +30,7 @@ router.post('/register', registerValidators, async (req: Request, res: Response)
         const hashPassword = await bcryptjs.hash(password, 12);
         const user = new User({
             name: name,
+            email: email,
             password: hashPassword,
             gamesQuantity: 0,
             winsQuantity: 0,
@@ -55,14 +55,21 @@ router.post('/register', registerValidators, async (req: Request, res: Response)
 
 router.post('/login', authValidators, async (req: Request, res: Response) => {
     try {
-        let {name} = req.body;
+        let {name, publicKey} = req.body;
 
         const errors = validationResult(req);        
         if (!errors.isEmpty()) {
             return res.status(422).json(sendError(422, errors.array()[0].msg));
         }
 
-        const user = await User.findOne({name});
+        const encrypter = Encrypter.getInstanceByPublicKey(publicKey) as Encrypter;
+        encrypter.clearKey();
+        
+        let user = await User.findOne({name});        
+        if (!user) {
+            user = await User.findOne({email: name});
+        }
+
         const _id = user._id;
         const jwt = sign({_id}, fs.readFileSync(path.join(__dirname, '..', 'assets', 'key.txt'), {encoding: 'utf-8'}));
         res.status(200).json({jwt, header: headerJWT});        
