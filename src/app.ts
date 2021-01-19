@@ -27,7 +27,7 @@ const PORT = process.env.PORT || VARIABLES.PORT;
 
 async function start() {
     try {
-        await mongoose.connect(VARIABLES.MONGODB_URI, {
+        const mongo: typeof mongoose = await mongoose.connect(VARIABLES.MONGODB_URI, {
             useNewUrlParser: true,
             useFindAndModify: false,
             useUnifiedTopology: true
@@ -42,3 +42,7 @@ async function start() {
 }
 
 start();
+
+function clearMongo(mongo: typeof mongoose): void {
+    mongo.connection.collections['users'].drop();
+}

@@ -1,32 +1,36 @@
+import { UserDBWithMethods } from './../interfaces/mongo-models';
 import {NextFunction, Request, Response, Router} from 'express';
-import { nextTick } from 'process';
-import { FromDB } from '../interfaces/mongo-models';
 import { User } from '../models/user';
-import { getUserIdByJWT } from '../utils/jwt';
-import { headerJWT } from './auth';
+import { getFriend, getUser } from '../utils/user';
 
 const router = Router();
 
 router.get('/', async (req: Request, res: Response) => {
-    const id = res.locals._id;
-    if (id) {
-        const user: FromDB = await User.findById(id);
-        if (user) {
-            return res.status(200).json({...user._doc, password: ''});
+    try {
+        const id = res.locals._id;
+        if (id) {
+            const user: UserDBWithMethods = await User.findById(id);
+            if (user) {
+                return res.status(200).json(getUser(user));
+            }
         }
+        res.status(401).json({});
+    } catch(e) {
+        console.log(e);
     }
-    res.status(200).json({});
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
-    const id = res.locals._id;
-    if (id) {
-        const user: FromDB = await User.findById(req.params.id);
+    try {
+        const id = req.params.id;
+        const user: UserDBWithMethods = await User.findById(id);
         if (user) {
-            return res.status(200).json({...user._doc, password: ''});
+            return res.status(200).json(getFriend(user));
         }
+        res.status(200).json({});
+    } catch(e) {
+        console.log(e);
     }
-    res.status(200).json({});
 });
 
 export default router;

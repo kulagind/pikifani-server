@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { UserForRes } from './user';
 
 export interface FromDB {
     _doc: any
@@ -14,14 +15,16 @@ export interface UserDB extends Document {
     games: GameDB['_id'][],
     receivedGameInvites: GamesInvitesDB['_id'][],
     sentGameInvites: GamesInvitesDB['_id'][],
-    receivedFriendInvites: FriendsInvitesDB['_id'][],
-    sentFriendInvites: FriendsInvitesDB['_id'][],
+    receivedFriendInvites: UserDB['_id'][],
+    sentFriendInvites: UserDB['_id'][],
     waitingGames: WaitingGamesDB['_id'][]
 }
 
-export interface FriendsInvitesDB extends Document {
-    authorId: UserDB['_id'],
-    recepientId: UserDB['_id']
+export interface UserDBWithMethods extends UserDB, Document {
+    addSentFriendInvite(inviteId: string): Promise<void>,
+    addReceivedFriendInvite(inviteId: string): Promise<void>,
+    removeSentFriendInvite(inviteId: string): Promise<void>,
+    removeReceivedFriendInvite(inviteId: string): Promise<void>,
 }
 
 export interface GamesInvitesDB extends Document {

@@ -53,13 +53,17 @@ const user: Schema<UserDB> = new Schema({
 });
 
 user.methods.addSentFriendInvite = function(inviteId: string) {
-    this.sentFriendInvites.push(inviteId);
-    return this.save();
+    if (!this.sentFriendInvites.includes(inviteId)) {
+        this.sentFriendInvites.push(inviteId);
+        return this.save();
+    }
 };
 
 user.methods.addReceivedFriendInvite = function(inviteId: string) {
-    this.receivedFriendInvites.push(inviteId);
-    return this.save();
+    if (!this.receivedFriendInvites.includes(inviteId)) {
+        this.receivedFriendInvites.push(inviteId);
+        return this.save();
+    }
 };
 
 user.methods.removeSentFriendInvite = function(inviteId: string) {
