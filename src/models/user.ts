@@ -1,6 +1,16 @@
 import mongoose, {Schema} from 'mongoose';
 import {UserDB} from '../interfaces/mongo-models';
 
+export enum Invite {
+    friends = 'friends',
+    games = 'games',
+    receivedGameInvites = 'receivedGameInvites',
+    sentGameInvites = 'sentGameInvites',
+    receivedFriendInvites = 'receivedFriendInvites',
+    sentFriendInvites = 'sentFriendInvites',
+    waitingGames = 'waitingGames',
+}
+
 const user: Schema<UserDB> = new Schema({
     name: {
         type: String,
@@ -52,27 +62,39 @@ const user: Schema<UserDB> = new Schema({
     }
 });
 
-user.methods.addSentFriendInvite = function(inviteId: string) {
-    if (!this.sentFriendInvites.includes(inviteId)) {
-        this.sentFriendInvites.push(inviteId);
-        return this.save();
+user.methods.addFriend = function(friendId: string): Promise<UserDB> {
+    let inviteIndex: number = this.receivedFriendInvites.findIndex(value => value.toString() === friendId.toString());    
+    let isInviteFound: boolean = false;
+    if (inviteIndex >= 0) {
+        this.receivedFriendInvites.splice(inviteIndex, 1);
+        isInviteFound = true;
     }
-};
-
-user.methods.addReceivedFriendInvite = function(inviteId: string) {
-    if (!this.receivedFriendInvites.includes(inviteId)) {
-        this.receivedFriendInvites.push(inviteId);
-        return this.save();
+    inviteIndex = this.sentFriendInvites.findIndex(value => value.toString() === friendId.toString());
+    if (inviteIndex >= 0) {
+        this.sentFriendInvites.splice(inviteIndex, 1);
+        isInviteFound = true;
     }
-};
 
-user.methods.removeSentFriendInvite = function(inviteId: string) {
-    this.sentFriendInvites = this.sentFriendInvites.filter(invite => invite._id !== inviteId);
+    if (!this.friends.includes(friendId.toString()) && isInviteFound) {
+        this.friends.push(friendId.toString());
+    }
     return this.save();
 };
 
-user.methods.removeReceivedFriendInvite = function(inviteId: string) {
-    this.receivedFriendInvites = this.receivedFriendInvites.filter(invite => invite._id !== inviteId);
+user.methods.joinTheQueue = function(id: string): Promise<UserDB> {
+    this.waitingGames.push(id.toString());
+    return this.save();
+}
+
+user.methods.removeInvite = function(id: string, inviteType: Invite): Promise<UserDB> {
+    this[inviteType] = this.sentGameInvites.filter(invite => invite.toString() !== id.toString());
+    return this.save();
+};
+
+user.methods.receiveInvite = function(id: string, inviteType: Invite): Promise<UserDB> {
+    if (!this[inviteType].includes(id.toString())) {
+        this[inviteType].push(id.toString());
+    }
     return this.save();
 };
 

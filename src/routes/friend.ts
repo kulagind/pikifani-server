@@ -1,31 +1,11 @@
 import { UserForRes } from './../interfaces/user';
 import {Router} from 'express';
 import { UserDB, UserDBWithMethods } from '../interfaces/mongo-models';
-import { User } from '../models/user';
+import { Invite, User } from '../models/user';
 import { sendError } from '../utils/error';
-import { getFriend, getUser } from '../utils/user';
+import { findUserBySomething, getFriend, getUser } from '../utils/user';
 
 const router = Router();
-
-const findUserBySomething = async (value: string): Promise<UserDBWithMethods> => {
-    let user = await User.findOne({
-        name: value
-    });
-
-    if (!user) {
-        user = await User.findOne({
-            email: value
-        });
-    }
-
-    if (!user) {
-        user = await User.findOne({
-            _id: value
-        });
-    }
-
-    return user;
-};
 
 router.post('/', async (req, res) => {
     try {
@@ -36,15 +16,46 @@ router.post('/', async (req, res) => {
         }
 
         const {name} = req.body;
-        const friend: UserDBWithMethods = await findUserBySomething(name);
-        if (!friend) {
-            return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
+
+        if (name) {
+            const friend: UserDBWithMethods = await findUserBySomething(name);
+            if (!friend) {
+                return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
+            }
+
+            await user.receiveInvite(friend._id, Invite.sentFriendInvites);
+            await friend.receiveInvite(user._id, Invite.receivedFriendInvites);
+
+            return res.status(201).json({});
+        }
+        return res.status(200).json();
+    } catch(e) {
+        console.log(e);
+    }
+});
+
+router.post('/add', async (req, res) => {
+    try {
+        const clientId = res.locals._id;
+        const user: UserDBWithMethods = await User.findById(clientId);
+        if (!user) {
+            return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
 
-        await user.addSentFriendInvite(friend._id);
-        await friend.addReceivedFriendInvite(user._id);
+        const {id} = req.body;
+
+        if (id) {
+            const friend: UserDBWithMethods = await User.findById(id);
+            if (!friend) {
+                return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
+            }
     
-        return res.status(201).json({});
+            await user.addFriend(friend._id);
+            await friend.addFriend(user._id);            
+        
+            return res.status(201).json(getUser(friend));
+        }
+        return res.status(422).json(sendError(422, 'Необходимо отправить тело {id: string}'));
     } catch(e) {
         console.log(e);
     }
@@ -65,22 +76,22 @@ router.get('/all', async (req, res) => {
         const foundFriends: UserForRes[] = [];
         for (let i=0; i<friends.length; i++) {
             const candidate = await User.findById(friends[i]);
-            foundFriends.push(getFriend(candidate));
+            foundFriends.push(getUser(candidate));
         }
 
         const foundSent: UserForRes[] = [];
         for (let i=0; i<sent.length; i++) {
             const candidate = await User.findById(sent[i]);
-            foundSent.push(getFriend(candidate));
+            foundSent.push(getUser(candidate));
         }
 
         const foundReceived: UserForRes[] = [];
         for (let i=0; i<received.length; i++) {
             const candidate = await User.findById(received[i]);
-            foundReceived.push(getFriend(candidate));
+            foundReceived.push(getUser(candidate));
         }
 
-        return res.status(201).json({friends: foundFriends, received: foundReceived, sent: foundSent});
+        return res.status(200).json({friends: foundFriends, received: foundReceived, sent: foundSent});
     } catch(e) {
         console.log(e);
     }

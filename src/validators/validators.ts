@@ -2,8 +2,10 @@ import {body} from 'express-validator';
 import {User} from '../models/user';
 import bcryptjs from 'bcryptjs';
 import { Encrypter } from '../models/key';
+import { Word } from '../models/word';
 
-const nameRegExp = /^[a-zA-Zа-яА-я0-9-_]{2,20}$/;
+const nameRegExp = /^[a-zA-Zа-яА-Я0-9-_]{2,20}$/;
+const wordRegExp = /^[а-яА-Я]{4}$/;
 
 export const registerValidators = [
     body('publicKey')
@@ -103,4 +105,24 @@ export const authValidators = [
             return Promise.reject('Неверный пароль');
         }
     })    
+];
+
+export const wordValidators = [
+    body('word', 'Слово должно состоять из 4 букв').isLength({min: 4, max: 4})
+        .custom(async (value, {req}) => {
+            if (!wordRegExp.test(value)) {
+                return Promise.reject('Слово должно состоять из русских букв');
+            }
+        })
+        .toLowerCase()
+        .custom(async (value, {req}) => {
+            const word = await Word.findOne({
+                where: {
+                    word: value
+                }
+            });
+            if (!word) {
+                return Promise.reject('Заявленное слово не существует (отсутствует в коллекции слов, если Вы уверены, что данное слово существует, пожалуйста, свяжитесь с разработчиком)')
+            }
+        })
 ];

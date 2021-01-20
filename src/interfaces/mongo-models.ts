@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { Invite } from '../models/user';
 import { UserForRes } from './user';
 
 export interface FromDB {
@@ -13,27 +14,27 @@ export interface UserDB extends Document {
     winsQuantity: number,
     friends: UserDB['_id'][],
     games: GameDB['_id'][],
-    receivedGameInvites: GamesInvitesDB['_id'][],
-    sentGameInvites: GamesInvitesDB['_id'][],
+    receivedGameInvites: GamesInviteDB['_id'][],
+    sentGameInvites: GamesInviteDB['_id'][],
     receivedFriendInvites: UserDB['_id'][],
     sentFriendInvites: UserDB['_id'][],
-    waitingGames: WaitingGamesDB['_id'][]
+    waitingGames: WaitingGameDB['_id'][]
 }
 
 export interface UserDBWithMethods extends UserDB, Document {
-    addSentFriendInvite(inviteId: string): Promise<void>,
-    addReceivedFriendInvite(inviteId: string): Promise<void>,
-    removeSentFriendInvite(inviteId: string): Promise<void>,
-    removeReceivedFriendInvite(inviteId: string): Promise<void>,
+    addFriend(id: string): Promise<UserDB>,
+    addWaitingGame(id: string): Promise<UserDB>,
+    receiveInvite(id: string, inviteType: Invite): Promise<UserDB>,
+    removeInvite(id: string, inviteType: Invite): Promise<UserDB>,
 }
 
-export interface GamesInvitesDB extends Document {
+export interface GamesInviteDB extends Document {
     authorId: UserDB['_id'],
     word: string,
     recepientId: UserDB['_id']
 }
 
-export interface WaitingGamesDB extends Document {
+export interface WaitingGameDB extends Document {
     authorId: UserDB['_id'],
     word: string
 }
