@@ -8,7 +8,6 @@ import friendRoutes from './routes/friend';
 import gameRoutes from './routes/game';
 import bodyParser from 'body-parser';
 import {auth} from './middlewares/auth';
-import { Chat, Message } from './models/chat';
 
 const app: Application = express();
 
@@ -23,7 +22,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/friend', friendRoutes);
 app.use('/api/game', gameRoutes);
 
-app.use(Chat.create('/api/sse/:id'));
+// app.use(Chat.create('/api/sse/:id'));
 
 const PORT = process.env.PORT || VARIABLES.PORT;
 

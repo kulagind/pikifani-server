@@ -3,7 +3,7 @@ import { GamesInviteDB, WaitingGameDB } from '../interfaces/mongo-models';
 
 const gameInvite: Schema<GamesInviteDB> = new Schema({
     authorId: {
-        type: [Schema.Types.ObjectId],
+        type: Schema.Types.ObjectId,
         required: true
     },
     word: {
@@ -11,7 +11,7 @@ const gameInvite: Schema<GamesInviteDB> = new Schema({
         required: true
     },
     recepientId: {
-        type: [Schema.Types.ObjectId],
+        type: Schema.Types.ObjectId,
         required: true
     }
 });
@@ -20,7 +20,7 @@ export const GameInvite = mongoose.model<GamesInviteDB>('GameInvite', gameInvite
 
 const waitingGame: Schema<WaitingGameDB> = new Schema({
     authorId: {
-        type: [Schema.Types.ObjectId],
+        type: Schema.Types.ObjectId,
         required: true
     },
     word: {

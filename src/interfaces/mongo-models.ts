@@ -40,10 +40,14 @@ export interface WaitingGameDB extends Document {
 }
 
 export interface GameDB extends Document {
-    user1: UserDB['_id'],
-    user2: UserDB['_id'],
-    userWord1: string,
-    userWord2: string,
+    user1: {
+        id: UserDB['_id'],
+        word: string
+    },
+    user2: {
+        id: UserDB['_id'],
+        word: string
+    },
     turnId: UserDB['_id'],
     messages: MessageDB[]
 }

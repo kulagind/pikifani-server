@@ -33,9 +33,11 @@ export const findUserBySomething = async (value: string): Promise<UserDBWithMeth
     }
 
     if (!user) {
-        user = await User.findOne({
-            _id: value
-        });
+        try {
+            user = await User.findById(value);
+        } catch(e) {
+            console.log('Friend was not found');
+        }
     }
 
     return user;
