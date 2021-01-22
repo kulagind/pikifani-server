@@ -1,5 +1,6 @@
+import { GameChat } from './../models/chat';
 import { WaitingGameInvitesForRes, SentGameInvitesForRes, ReceivedGameInvitesForRes } from './../interfaces/response';
-import { WaitingGameDB } from './../interfaces/mongo-models';
+import { GameDB, WaitingGameDB } from './../interfaces/mongo-models';
 import { findUserBySomething, getUser } from './../utils/user';
 import { Request, Response, Router } from 'express';
 import { GamesInviteDB, UserDBWithMethods } from '../interfaces/mongo-models';
@@ -9,6 +10,8 @@ import { wordValidators } from '../validators/validators';
 import { validationResult } from 'express-validator';
 import { GameInvite, WaitingGame } from '../models/game';
 import { getReceivedGameInvite, getSentGameInvite } from '../utils/game';
+import { randomNumber } from '../utils/random-int';
+import { getChat } from '../utils/chat';
 
 const router = Router();
 
@@ -82,15 +85,39 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
             }
             return res.status(422).json(sendError(422, 'Друг не найден'));
         } else {
-            const waitingGame: WaitingGameDB = new WaitingGame({
-                word,
-                authorId: id
-            });
+            const foundWaiting: WaitingGameDB = await GameChat.findOneAndDelete();
+            if (foundWaiting) {
+                const friend: UserDBWithMethods = await User.findById(foundWaiting.authorId);
+                const game: GameDB = new GameChat({
+                    user1: {
+                        id: foundWaiting.authorId,
+                        word: foundWaiting.word
+                    },
+                    user2: {
+                        id,
+                        word
+                    },
+                    turnId: randomNumber(0, 1) ? foundWaiting.authorId : id,
+                    messages: []
+                });
 
-            await waitingGame.save();
-            await user.receiveInvite(waitingGame._id, Invite.waitingGames);
+                await game.save();
+                await friend.removeInvite(foundWaiting._id, Invite.waitingGames);
+                await user.startGame(game._id);
+                await friend.startGame(game._id);
 
-            return res.status(201).json(waitingGame);
+                return res.status(201).json(getChat(game, id));
+            } else {
+                const waitingGame: WaitingGameDB = new WaitingGame({
+                    word,
+                    authorId: id
+                });
+    
+                await waitingGame.save();
+                await user.receiveInvite(waitingGame._id, Invite.waitingGames);
+    
+                return res.status(201).json(waitingGame);
+            }
         }
     } catch(e) {
         console.log(e);

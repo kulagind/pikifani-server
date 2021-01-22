@@ -26,6 +26,7 @@ export interface UserDBWithMethods extends UserDB, Document {
     addWaitingGame(id: string): Promise<UserDB>,
     receiveInvite(id: string, inviteType: Invite): Promise<UserDB>,
     removeInvite(id: string, inviteType: Invite): Promise<UserDB>,
+    startGame(id: string): Promise<UserDB>,
 }
 
 export interface GamesInviteDB extends Document {

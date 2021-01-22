@@ -1,3 +1,4 @@
+import { throws } from 'assert';
 import mongoose, {Schema} from 'mongoose';
 import {UserDB} from '../interfaces/mongo-models';
 
@@ -97,5 +98,10 @@ user.methods.receiveInvite = function(id: string, inviteType: Invite): Promise<U
     }
     return this.save();
 };
+
+user.methods.startGame = function(id: string): Promise<UserDB> {
+    
+    return this.save();
+}
 
 export const User = mongoose.model<UserDB>('User', user);
