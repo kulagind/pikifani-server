@@ -4,7 +4,8 @@ import { GameDB, UserDBWithMethods } from './../interfaces/mongo-models';
 export interface ChatForRes {
     word: string,
     turnId: string,
-    friend: string
+    friend: string,
+    gameId?: string
 }
 
 export async function getChat(chat: GameDB, clientId: string): Promise<ChatForRes> {

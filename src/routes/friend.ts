@@ -19,7 +19,7 @@ router.post('/', async (req, res) => {
 
         if (name) {
             const friend: UserDBWithMethods = await findUserBySomething(name);
-            if (!friend) {
+            if (!friend || friend._id == id) {
                 return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
             }
 
@@ -46,7 +46,7 @@ router.post('/add', async (req, res) => {
 
         if (id) {
             const friend: UserDBWithMethods = await User.findById(id);
-            if (!friend) {
+            if (!friend || id === clientId) {
                 return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
             }
     

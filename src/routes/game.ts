@@ -1,7 +1,6 @@
 import { GameChat } from './../models/chat';
-import { WaitingGameInvitesForRes, SentGameInvitesForRes, ReceivedGameInvitesForRes } from './../interfaces/response';
 import { GameDB, WaitingGameDB } from './../interfaces/mongo-models';
-import { findUserBySomething, getUser } from './../utils/user';
+import { findUserBySomething } from './../utils/user';
 import { Request, Response, Router } from 'express';
 import { GamesInviteDB, UserDBWithMethods } from '../interfaces/mongo-models';
 import { Invite, User } from '../models/user';
@@ -9,9 +8,10 @@ import { sendError } from '../utils/error';
 import { wordValidators } from '../validators/validators';
 import { validationResult } from 'express-validator';
 import { GameInvite, WaitingGame } from '../models/game';
-import { getReceivedGameInvite, getSentGameInvite } from '../utils/game';
 import { randomNumber } from '../utils/random-int';
 import { getChat } from '../utils/chat';
+import { SSEConnection } from '../models/sse';
+import { SSEType } from '../interfaces/sse';
 
 const router = Router();
 
@@ -22,32 +22,10 @@ router.get('/', async (req, res) => {
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
+        
+        const invites = await user.getInvites();
 
-        const sent = user.sentGameInvites;
-        const received = user.receivedGameInvites;
-        const waiting = user.waitingGames;
-
-        const foundWaiting: WaitingGameInvitesForRes[] = [];
-        for (let i=0; i<waiting.length; i++) {
-            const candidate: WaitingGameDB = await WaitingGame.findById(waiting[i]);
-            foundWaiting.push(candidate as WaitingGameInvitesForRes);
-        }
-
-        const foundSent: SentGameInvitesForRes[] = [];
-        for (let i=0; i<sent.length; i++) {
-            const candidate: GamesInviteDB = await GameInvite.findById(sent[i]);
-            const invite = await getSentGameInvite(candidate);
-            foundSent.push(invite);
-        }
-
-        const foundReceived: ReceivedGameInvitesForRes[] = [];
-        for (let i=0; i<received.length; i++) {
-            const candidate: GamesInviteDB = await GameInvite.findById(received[i]);
-            const invite = await getReceivedGameInvite(candidate);
-            foundReceived.push(invite);
-        }
-
-        return res.status(200).json({waiting: foundWaiting, received: foundReceived, sent: foundSent});
+        return res.status(200).json(invites);
     } catch(e) {
         console.log(e);
     }
@@ -70,7 +48,7 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
 
         if (name) {
             const friend = await findUserBySomething(name);
-            if (friend) {
+            if (friend && friend._id != id) {
                 const gameInvite: GamesInviteDB = new GameInvite({
                     word,
                     recepientId: friend._id,
@@ -81,11 +59,21 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
                 await user.receiveInvite(gameInvite._id, Invite.sentGameInvites);
                 await friend.receiveInvite(gameInvite._id, Invite.receivedGameInvites);
 
+                const invitesUser = await user.getInvites();
+                const invitesFriend = await friend.getInvites();
+                SSEConnection.send(user._id.toString(), {type: SSEType.invites, payload: invitesUser});
+                SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
+
                 return res.status(201).json(gameInvite);
             }
             return res.status(422).json(sendError(422, 'Друг не найден'));
         } else {
-            const foundWaiting: WaitingGameDB = await GameChat.findOneAndDelete();
+            const foundWaiting: WaitingGameDB = await WaitingGame.findOneAndDelete({
+                authorId: {
+                    $ne: user._id
+                }
+            });
+            
             if (foundWaiting) {
                 const friend: UserDBWithMethods = await User.findById(foundWaiting.authorId);
                 const game: GameDB = new GameChat({
@@ -105,6 +93,9 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
                 await friend.removeInvite(foundWaiting._id, Invite.waitingGames);
                 await user.startGame(game._id);
                 await friend.startGame(game._id);
+                
+                const invitesFriend = await friend.getInvites();
+                SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
 
                 return res.status(201).json(getChat(game, id));
             } else {
@@ -115,6 +106,9 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
     
                 await waitingGame.save();
                 await user.receiveInvite(waitingGame._id, Invite.waitingGames);
+
+                const invitesUser = await user.getInvites();
+                SSEConnection.send(user._id.toString(), {type: SSEType.invites, payload: invitesUser});
     
                 return res.status(201).json(waitingGame);
             }

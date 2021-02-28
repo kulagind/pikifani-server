@@ -18,16 +18,15 @@ router.get('/', async (req: Request, res: Response) => {
         const client: UserDBWithMethods = await User.findById(clientId);
         if (!client) {
             res.status(401).json(sendError(401, 'Неавторизованный пользователь'));
-        } 
+        }
 
         const gameIds: string[] = client.games;
         const chats: ChatForRes[] = [];
-        gameIds.forEach(async gameId => {
-            const chat: GameDB = await GameChat.findById(gameId);
-            const chatForRes = await getChat(chat, clientId);
-            chats.push(chatForRes);
-        });
-
+        for (let item of gameIds) {
+            const chat: GameDB = await GameChat.findById(item);
+            const chatForRes = await getChat(chat, clientId);            
+            chats.push({gameId: item, ...chatForRes});
+        }
         res.status(200).json({chats});
     } catch(e) {
         console.log(e);
@@ -47,10 +46,10 @@ router.post('/', wordValidators, async (req: Request, res: Response) => {
             return res.status(422).json(sendError(422, errors.array()[0].msg));
         }
 
-        const {gameId, word} = req.body;
+        const {inviteId, word} = req.body;
 
-        if (gameId) {
-            const gameInvite: GamesInviteDB = await GameInvite.findByIdAndDelete(gameId);
+        if (inviteId) {
+            const gameInvite: GamesInviteDB = await GameInvite.findByIdAndDelete(inviteId);
             const friend: UserDBWithMethods = await User.findById(gameInvite.authorId);
             if (gameInvite && friend) {
                 const game: GameDB = new GameChat({
@@ -72,11 +71,13 @@ router.post('/', wordValidators, async (req: Request, res: Response) => {
                 await user.startGame(game._id);
                 await friend.startGame(game._id);
 
-                return res.status(201).json(getChat(game, id));
+                const responseJson = await getChat(game, id);
+
+                return res.status(201).json(responseJson);
             }
             return res.status(422).json(sendError(422, 'Игра не найдена'));
         }
-        return res.status(422).json(sendError(422, 'Необходимо отправить запрос с телом {gameId: string, word: string}'));
+        return res.status(422).json(sendError(422, 'Необходимо отправить запрос с телом {inviteId: string, word: string}'));
     } catch(e) {
         console.log(e);
     }

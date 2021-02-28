@@ -12,7 +12,7 @@ export async function getSentGameInvite(gameInvite: GamesInviteDB): Promise<Sent
 }
 
 export async function getReceivedGameInvite(gameInvite: GamesInviteDB): Promise<ReceivedGameInvitesForRes> {
-    const friend: UserDB = await User.findById(gameInvite.recepientId);
+    const friend: UserDB = await User.findById(gameInvite.authorId);
     return {
         _id: gameInvite._id,
         friend: friend.name

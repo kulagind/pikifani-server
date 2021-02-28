@@ -1,12 +1,13 @@
+import { SSEConnection } from './models/sse';
 import express, { Application } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Connection } from 'mongoose';
 import VARIABLES from './var/var';
 import wordRoutes from './routes/word';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import friendRoutes from './routes/friend';
 import gameInvitesRoutes from './routes/game';
-import chatRoutes from './routes/chat';
+import gameChatRoutes from './routes/chat';
 import bodyParser from 'body-parser';
 import {auth} from './middlewares/auth';
 
@@ -22,9 +23,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/invites', gameInvitesRoutes);
-app.use('/api/games', chatRoutes);
-
-// app.use(Chat.create('/api/sse/:id'));
+app.use('/api/games', gameChatRoutes);
+app.use(SSEConnection.create('/api/sse/:id'));
 
 const PORT = process.env.PORT || VARIABLES.PORT;
 
@@ -35,6 +35,8 @@ async function start() {
             useFindAndModify: false,
             useUnifiedTopology: true
         });
+
+        // clearMongo(mongo);
     
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
@@ -48,4 +50,5 @@ start();
 
 function clearMongo(mongo: typeof mongoose): void {
     mongo.connection.collections['users'].drop();
+    mongo.connection.collections['waitinggames'].drop();
 }

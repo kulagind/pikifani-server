@@ -10,7 +10,7 @@ router.get('/', async (req: Request, res: Response) => {
         const id = res.locals._id;
         if (id) {
             const user: UserDBWithMethods = await User.findById(id);
-            if (user) {
+            if (user) {                
                 return res.status(200).json(getUser(user));
             }
         }

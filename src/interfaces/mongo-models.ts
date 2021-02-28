@@ -1,6 +1,5 @@
 import { Document } from 'mongoose';
 import { Invite } from '../models/user';
-import { UserForRes } from './user';
 
 export interface FromDB {
     _doc: any
@@ -27,6 +26,7 @@ export interface UserDBWithMethods extends UserDB, Document {
     receiveInvite(id: string, inviteType: Invite): Promise<UserDB>,
     removeInvite(id: string, inviteType: Invite): Promise<UserDB>,
     startGame(id: string): Promise<UserDB>,
+    getInvites(): Promise<any>;
 }
 
 export interface GamesInviteDB extends Document {
