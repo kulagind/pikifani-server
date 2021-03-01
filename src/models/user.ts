@@ -1,7 +1,11 @@
 import mongoose, {Schema} from 'mongoose';
-import {GamesInviteDB, UserDB, WaitingGameDB} from '../interfaces/mongo-models';
+import {GameDB, GamesInviteDB, UserDB, WaitingGameDB} from '../interfaces/mongo-models';
 import { ReceivedGameInvitesForRes, SentGameInvitesForRes, WaitingGameInvitesForRes } from '../interfaces/response';
+import { UserForRes } from '../interfaces/user';
+import { ChatForRes, getChat } from '../utils/chat';
 import { getReceivedGameInvite, getSentGameInvite } from '../utils/game';
+import { getUser } from '../utils/user';
+import { GameChat } from './chat';
 import { GameInvite, WaitingGame } from './game';
 
 export enum Invite {
@@ -94,6 +98,11 @@ user.methods.removeInvite = function(id: string, inviteType: Invite): Promise<Us
     return this.save();
 };
 
+user.methods.removeChat = function(id: string): Promise<UserDB> {
+    this.games = this.games.filter(game => game.toString() !== id.toString());
+    return this.save();
+};
+
 user.methods.receiveInvite = function(id: string, inviteType: Invite): Promise<UserDB> {
     if (!this[inviteType].includes(id.toString())) {
         this[inviteType].push(id.toString());
@@ -135,5 +144,48 @@ user.methods.getInvites = async function(): Promise<{
 
     return {waiting: foundWaiting, received: foundReceived, sent: foundSent};
 };
+
+user.methods.getFriends = async function(): Promise<{
+    friends: UserForRes[], 
+    received: UserForRes[], 
+    sent: UserForRes[]
+}> {
+    const foundFriends: UserForRes[] = [];
+    for (let i=0; i<this.friends.length; i++) {
+        const candidate = await User.findById(this.friends[i]);
+        foundFriends.push(getUser(candidate));
+    }
+
+    const foundSent: UserForRes[] = [];
+    for (let i=0; i<this.sentFriendInvites.length; i++) {
+        const candidate = await User.findById(this.sentFriendInvites[i]);
+        foundSent.push(getUser(candidate));
+    }
+
+    const foundReceived: UserForRes[] = [];
+    for (let i=0; i<this.receivedFriendInvites.length; i++) {
+        const candidate = await User.findById(this.receivedFriendInvites[i]);
+        foundReceived.push(getUser(candidate));
+    }
+
+    return {friends: foundFriends, received: foundReceived, sent: foundSent};
+};
+
+user.methods.getChats = async function(): Promise<ChatForRes[]> {
+    const chats: ChatForRes[] = [];
+    const chatsToRemove: string[] = [];
+    for (let item of this.games) {
+        const chat: GameDB = await GameChat.findById(item);
+        if (chat) {
+            const chatForRes = await getChat(chat, this._id);            
+            chats.push({gameId: item, ...chatForRes});
+        } else {
+            chatsToRemove.push(item.toString());
+        }
+    }
+    this.games = this.games.filter(game => !chatsToRemove.includes(game.toString()));
+    await this.save();
+    return chats;
+}
 
 export const User = mongoose.model<UserDB>('User', user);

@@ -6,8 +6,9 @@ import wordRoutes from './routes/word';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import friendRoutes from './routes/friend';
+import messageRoutes from './routes/message';
 import gameInvitesRoutes from './routes/game';
-import gameChatRoutes from './routes/chat';
+import gamesRoutes from './routes/chat';
 import bodyParser from 'body-parser';
 import {auth} from './middlewares/auth';
 
@@ -23,7 +24,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/invites', gameInvitesRoutes);
-app.use('/api/games', gameChatRoutes);
+app.use('/api/games', gamesRoutes);
+app.use('/api/chat', messageRoutes);
 app.use(SSEConnection.create('/api/sse/:id'));
 
 const PORT = process.env.PORT || VARIABLES.PORT;

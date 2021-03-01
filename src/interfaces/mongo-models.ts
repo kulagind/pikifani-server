@@ -27,6 +27,9 @@ export interface UserDBWithMethods extends UserDB, Document {
     removeInvite(id: string, inviteType: Invite): Promise<UserDB>,
     startGame(id: string): Promise<UserDB>,
     getInvites(): Promise<any>;
+    getFriends(): Promise<any>;
+    getChats(): Promise<any>;
+    removeChat(id: string): Promise<UserDB>;
 }
 
 export interface GamesInviteDB extends Document {
@@ -49,8 +52,14 @@ export interface GameDB extends Document {
         id: UserDB['_id'],
         word: string
     },
+    winner: UserDB['_id'],
+    toRemove: UserDB['_id'],
     turnId: UserDB['_id'],
     messages: MessageDB[]
+}
+
+export interface GameDBWithMethods extends GameDB, Document {
+    sendMessage(userId: string, word: string): Promise<boolean>;
 }
 
 export interface MessageDB {

@@ -1,6 +1,6 @@
 import { ChatForRes } from './../utils/chat';
 import { GameChat } from './../models/chat';
-import { GameDB, UserDB, UserDBWithMethods, GamesInviteDB } from './../interfaces/mongo-models';
+import { GameDB, UserDBWithMethods, GamesInviteDB } from './../interfaces/mongo-models';
 import { Request, Response, Router } from "express";
 import { Invite, User } from "../models/user";
 import { sendError } from "../utils/error";
@@ -9,6 +9,8 @@ import { wordValidators } from '../validators/validators';
 import { validationResult } from 'express-validator';
 import { GameInvite } from '../models/game';
 import { randomNumber } from '../utils/random-int';
+import { SSEConnection } from '../models/sse';
+import { SSEType } from '../interfaces/sse';
 
 const router = Router();
 
@@ -20,13 +22,8 @@ router.get('/', async (req: Request, res: Response) => {
             res.status(401).json(sendError(401, 'Неавторизованный пользователь'));
         }
 
-        const gameIds: string[] = client.games;
-        const chats: ChatForRes[] = [];
-        for (let item of gameIds) {
-            const chat: GameDB = await GameChat.findById(item);
-            const chatForRes = await getChat(chat, clientId);            
-            chats.push({gameId: item, ...chatForRes});
-        }
+        const chats: ChatForRes[] = await client.getChats();
+
         res.status(200).json({chats});
     } catch(e) {
         console.log(e);
@@ -72,6 +69,16 @@ router.post('/', wordValidators, async (req: Request, res: Response) => {
                 await friend.startGame(game._id);
 
                 const responseJson = await getChat(game, id);
+
+                const userChats: ChatForRes[] = await user.getChats();
+                const friendChats: ChatForRes[] = await friend.getChats();
+                SSEConnection.send(user._id.toString(), {type: SSEType.games, payload: userChats});
+                SSEConnection.send(friend._id.toString(), {type: SSEType.games, payload: friendChats});
+
+                const invitesUser = await user.getInvites();
+                const invitesFriend = await friend.getInvites();
+                SSEConnection.send(user._id.toString(), {type: SSEType.invites, payload: invitesUser});
+                SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
 
                 return res.status(201).json(responseJson);
             }

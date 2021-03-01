@@ -1,4 +1,3 @@
-import { SSEMessage } from './../interfaces/chat';
 import express, { Application, Request, Response } from 'express';
 import { UserDBWithMethods } from '../interfaces/mongo-models';
 import { User } from './user';
@@ -60,24 +59,5 @@ export class SSEConnection {
         if (SSEConnection.map.has(userId)) {
             SSEConnection.map.delete(userId);
         }
-    }
-}
-
-export class Message implements SSEMessage{
-    chatId: number;
-    word: string;
-    creationTime: Date;
-    winnerId: number;
-
-    constructor(
-        chatId: number,
-        word: string,
-        creationTime: Date,
-        winnerId: number
-    ) {
-        this.chatId = chatId;
-        this.word = word;
-        this.creationTime = creationTime;
-        this.winnerId = winnerId;
     }
 }

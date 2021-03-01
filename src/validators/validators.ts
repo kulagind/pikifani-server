@@ -126,3 +126,23 @@ export const wordValidators = [
             }
         })
 ];
+
+export const messageValidators = [
+    body('word', 'Слово должно состоять из 4 букв').isLength({min: 4, max: 4})
+        .custom(async (value, {req}) => {
+            if (!wordRegExp.test(value)) {
+                return Promise.reject('Слово должно состоять из русских букв');
+            }
+        })
+        .toLowerCase()
+        .custom(async (value, {req}) => {
+            const word = await Word.findOne({
+                where: {
+                    word: value
+                }
+            });
+            if (!word) {
+                return Promise.reject('Заявленное слово не существует (отсутствует в коллекции слов, если Вы уверены, что данное слово существует, пожалуйста, свяжитесь с разработчиком)')
+            }
+        })
+];

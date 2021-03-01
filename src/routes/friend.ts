@@ -1,9 +1,10 @@
-import { UserForRes } from './../interfaces/user';
 import {Router} from 'express';
-import { UserDB, UserDBWithMethods } from '../interfaces/mongo-models';
+import { UserDBWithMethods } from '../interfaces/mongo-models';
 import { Invite, User } from '../models/user';
 import { sendError } from '../utils/error';
 import { findUserBySomething, getFriend, getUser } from '../utils/user';
+import { SSEConnection } from '../models/sse';
+import { SSEType } from '../interfaces/sse';
 
 const router = Router();
 
@@ -25,6 +26,11 @@ router.post('/', async (req, res) => {
 
             await user.receiveInvite(friend._id, Invite.sentFriendInvites);
             await friend.receiveInvite(user._id, Invite.receivedFriendInvites);
+
+            const userFriends = await user.getFriends();
+            const friendFriends = await friend.getFriends();
+            SSEConnection.send(user._id.toString(), {type: SSEType.friends, payload: userFriends});
+            SSEConnection.send(friend._id.toString(), {type: SSEType.friends, payload: friendFriends});
 
             return res.status(201).json({});
         }
@@ -51,7 +57,12 @@ router.post('/add', async (req, res) => {
             }
     
             await user.addFriend(friend._id);
-            await friend.addFriend(user._id);            
+            await friend.addFriend(user._id);   
+            
+            const userFriends = await user.getFriends();
+            const friendFriends = await friend.getFriends();
+            SSEConnection.send(user._id.toString(), {type: SSEType.friends, payload: userFriends});
+            SSEConnection.send(friend._id.toString(), {type: SSEType.friends, payload: friendFriends});
         
             return res.status(201).json(getUser(friend));
         }
@@ -69,29 +80,9 @@ router.get('/all', async (req, res) => {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
 
-        const sent = user.sentFriendInvites;
-        const received = user.receivedFriendInvites;
-        const friends = user.friends;
+        const friends = await user.getFriends();
 
-        const foundFriends: UserForRes[] = [];
-        for (let i=0; i<friends.length; i++) {
-            const candidate = await User.findById(friends[i]);
-            foundFriends.push(getUser(candidate));
-        }
-
-        const foundSent: UserForRes[] = [];
-        for (let i=0; i<sent.length; i++) {
-            const candidate = await User.findById(sent[i]);
-            foundSent.push(getUser(candidate));
-        }
-
-        const foundReceived: UserForRes[] = [];
-        for (let i=0; i<received.length; i++) {
-            const candidate = await User.findById(received[i]);
-            foundReceived.push(getUser(candidate));
-        }
-
-        return res.status(200).json({friends: foundFriends, received: foundReceived, sent: foundSent});
+        return res.status(200).json(friends);
     } catch(e) {
         console.log(e);
     }
