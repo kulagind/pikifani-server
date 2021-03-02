@@ -3,6 +3,7 @@ export enum SSEType {
     'games' = 'games',
     'friends' = 'friends',
     'invites' = 'invites',
+    'user' = 'user',
 }
 
 export interface SSETick {

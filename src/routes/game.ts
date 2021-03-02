@@ -9,7 +9,7 @@ import { wordValidators } from '../validators/validators';
 import { validationResult } from 'express-validator';
 import { GameInvite, WaitingGame } from '../models/game';
 import { randomNumber } from '../utils/random-int';
-import { getChat } from '../utils/chat';
+import { ChatForRes, getChat } from '../utils/chat';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
 
@@ -96,6 +96,11 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
                 
                 const invitesFriend = await friend.getInvites();
                 SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
+                
+                const userChats: ChatForRes[] = await user.getChats();
+                const friendChats: ChatForRes[] = await friend.getChats();
+                SSEConnection.send(user._id.toString(), {type: SSEType.games, payload: userChats});
+                SSEConnection.send(friend._id.toString(), {type: SSEType.games, payload: friendChats});
 
                 return res.status(201).json(getChat(game, id));
             } else {

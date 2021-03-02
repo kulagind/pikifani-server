@@ -1,15 +1,16 @@
 import { ChatMessageForRes, GameResult } from './../interfaces/chat';
-import { GameDB, GameDBWithMethods } from './../interfaces/mongo-models';
+import { GameDBWithMethods } from './../interfaces/mongo-models';
 import { GameChat } from './../models/chat';
 import { Router, Request, Response } from 'express';
 import { UserDBWithMethods } from '../interfaces/mongo-models';
 import { User } from '../models/user';
 import { sendError } from '../utils/error';
-import { messageValidators } from '../validators/validators';
+import { wordValidators } from '../validators/validators';
 import { ChatForRes, getChat, getOpponentId, getResult } from '../utils/chat';
 import { validationResult } from 'express-validator';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
+import { getUser } from '../utils/user';
 
 const router: Router = Router();
 
@@ -68,7 +69,7 @@ router.get('/result/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.post('/:id', messageValidators, async (req: Request, res: Response) => {
+router.post('/:id', wordValidators, async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
         const user: UserDBWithMethods = await User.findById(id);
@@ -85,9 +86,15 @@ router.post('/:id', messageValidators, async (req: Request, res: Response) => {
         const word: string = req.body.word;
 
         const chat: GameDBWithMethods = await GameChat.findById(gameId);
-        await chat.sendMessage(id, word);
+        const isFinished = await chat.sendMessage(id, word);
 
         const friend: UserDBWithMethods = await User.findById(getOpponentId(chat, id));
+
+        if (isFinished) {
+            user.winsQuantity++;
+            SSEConnection.send(user._id.toString(), {type: SSEType.user, payload: getUser(user)});
+        }
+
         const userChats: ChatForRes[] = await user.getChats();
         const friendChats: ChatForRes[] = await friend.getChats();
         SSEConnection.send(user._id.toString(), {type: SSEType.games, payload: userChats});
@@ -98,9 +105,8 @@ router.post('/:id', messageValidators, async (req: Request, res: Response) => {
             messages: chat.messages,
             winner: chat.winner
         };
-
         const openedFriendChat: ChatMessageForRes = {
-            info: await getChat(chat, id),
+            info: await getChat(chat, friend._id.toString()),
             messages: chat.messages,
             winner: chat.winner
         };

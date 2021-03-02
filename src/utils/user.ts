@@ -1,8 +1,8 @@
 import { User } from '../models/user';
-import { UserDBWithMethods } from './../interfaces/mongo-models';
+import { UserDB, UserDBWithMethods } from './../interfaces/mongo-models';
 import { UserForRes } from './../interfaces/user';
 
-export function getUser(user: UserDBWithMethods): UserForRes {
+export function getUser(user: UserDB): UserForRes {
     return {
         _id: user._id,
         name: user.name,

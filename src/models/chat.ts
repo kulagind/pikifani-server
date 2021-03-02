@@ -53,6 +53,10 @@ const gameChat: Schema<GameDB> = new Schema({
 });
 
 gameChat.methods.sendMessage = async function(authorId: string, word: string): Promise<boolean> {
+    if (this.messages.length > 0 && this.messages[this.messages.length - 1].authorId.toString() === authorId) {
+        return false;
+    }
+
     let opponent: {
         id: string,
         word: string

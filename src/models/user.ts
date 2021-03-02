@@ -1,12 +1,14 @@
 import mongoose, {Schema} from 'mongoose';
 import {GameDB, GamesInviteDB, UserDB, WaitingGameDB} from '../interfaces/mongo-models';
 import { ReceivedGameInvitesForRes, SentGameInvitesForRes, WaitingGameInvitesForRes } from '../interfaces/response';
+import { SSEType } from '../interfaces/sse';
 import { UserForRes } from '../interfaces/user';
 import { ChatForRes, getChat } from '../utils/chat';
 import { getReceivedGameInvite, getSentGameInvite } from '../utils/game';
 import { getUser } from '../utils/user';
 import { GameChat } from './chat';
 import { GameInvite, WaitingGame } from './game';
+import { SSEConnection } from './sse';
 
 export enum Invite {
     friends = 'friends',
@@ -113,6 +115,8 @@ user.methods.receiveInvite = function(id: string, inviteType: Invite): Promise<U
 user.methods.startGame = function(id: string): Promise<UserDB> {
     if (!this.games.includes(id.toString())) {
         this.games.push(id.toString());
+        this.gamesQuantity++;
+        SSEConnection.send(this._id.toString(), {type: SSEType.user, payload: getUser(this)})
     }
     return this.save();
 }
