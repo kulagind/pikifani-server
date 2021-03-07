@@ -11,7 +11,7 @@ const router = Router();
 router.post('/', async (req, res) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
 router.post('/add', async (req, res) => {
     try {
         const clientId = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(clientId);
+        const user: UserDBWithMethods = (await User.findById(clientId)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -51,7 +51,7 @@ router.post('/add', async (req, res) => {
         const {id} = req.body;
 
         if (id) {
-            const friend: UserDBWithMethods = await User.findById(id);
+            const friend: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
             if (!friend || id === clientId) {
                 return res.status(422).json(sendError(422, 'Пользователь с такими данными не найден'));
             }
@@ -75,7 +75,7 @@ router.post('/add', async (req, res) => {
 router.get('/all', async (req, res) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }

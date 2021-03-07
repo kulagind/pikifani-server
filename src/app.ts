@@ -1,6 +1,6 @@
 import { SSEConnection } from './models/sse';
 import express, { Application } from 'express';
-import mongoose, { Connection } from 'mongoose';
+import mongoose from 'mongoose';
 import VARIABLES from './var/var';
 import wordRoutes from './routes/word';
 import authRoutes from './routes/auth';
@@ -52,5 +52,4 @@ start();
 
 function clearMongo(mongo: typeof mongoose): void {
     mongo.connection.collections['users'].drop();
-    mongo.connection.collections['waitinggames'].drop();
 }

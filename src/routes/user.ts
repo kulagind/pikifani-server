@@ -9,7 +9,7 @@ router.get('/', async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
         if (id) {
-            const user: UserDBWithMethods = await User.findById(id);
+            const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
             if (user) {                
                 return res.status(200).json(getUser(user));
             }
@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
     try {
         const id = req.params.id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (user) {
             return res.status(200).json(getFriend(user));
         }

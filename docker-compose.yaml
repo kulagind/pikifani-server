@@ -1,0 +1,35 @@
+version: "3"
+
+volumes: 
+  mongodb_volume: 
+
+services:
+  mongodb:
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongodb_volume:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: pikifani
+  
+  mysql:
+    image: mysql:latest
+    restart: always
+    volumes: 
+      - ./scripts/mysql:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: pfWords
+
+  pf-server:
+    build: ./
+    restart: always
+    ports:
+      - 8000:8000
+    depends_on:
+      - mongodb
+      - mysql

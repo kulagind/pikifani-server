@@ -17,13 +17,13 @@ const router: Router = Router();
 router.get('/:id', async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
 
         const gameId: string = req.params.id;
-        const chat: GameDBWithMethods = await GameChat.findById(gameId);
+        const chat: GameDBWithMethods = (await GameChat.findById(gameId)) as GameDBWithMethods;
         
         const openedChat: ChatMessageForRes = {
             info: await getChat(chat, id),
@@ -40,13 +40,13 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.get('/result/:id', async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
         
         const gameId: string = req.params.id;
-        const chat: GameDBWithMethods = await GameChat.findById(gameId);
+        const chat: GameDBWithMethods = (await GameChat.findById(gameId)) as GameDBWithMethods;
         
         if (chat.toRemove && chat.toRemove.toString() !== id) {
             chat.delete();
@@ -55,7 +55,7 @@ router.get('/result/:id', async (req: Request, res: Response) => {
             await user.removeChat(chat._id);
         }
 
-        const friend: UserDBWithMethods = await User.findById(getOpponentId(chat, id));
+        const friend: UserDBWithMethods = (await User.findById(getOpponentId(chat, id))) as UserDBWithMethods;
         const userChats: ChatForRes[] = await user.getChats();
         const friendChats: ChatForRes[] = await friend.getChats();
         SSEConnection.send(user._id.toString(), {type: SSEType.games, payload: userChats});
@@ -72,7 +72,7 @@ router.get('/result/:id', async (req: Request, res: Response) => {
 router.post('/:id', wordValidators, async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -85,10 +85,10 @@ router.post('/:id', wordValidators, async (req: Request, res: Response) => {
         const gameId: string = req.params.id;
         const word: string = req.body.word;
 
-        const chat: GameDBWithMethods = await GameChat.findById(gameId);
+        const chat: GameDBWithMethods = (await GameChat.findById(gameId)) as GameDBWithMethods;
         const isFinished = await chat.sendMessage(id, word);
 
-        const friend: UserDBWithMethods = await User.findById(getOpponentId(chat, id));
+        const friend: UserDBWithMethods = (await User.findById(getOpponentId(chat, id))) as UserDBWithMethods;
 
         if (isFinished) {
             user.winsQuantity++;

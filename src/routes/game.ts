@@ -18,7 +18,7 @@ const router = Router();
 router.get('/', async (req, res) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -34,7 +34,7 @@ router.get('/', async (req, res) => {
 router.post('/create', wordValidators, async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -68,14 +68,14 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
             }
             return res.status(422).json(sendError(422, 'Друг не найден'));
         } else {
-            const foundWaiting: WaitingGameDB = await WaitingGame.findOneAndDelete({
+            const foundWaiting: WaitingGameDB = (await WaitingGame.findOneAndDelete({
                 authorId: {
                     $ne: user._id
                 }
-            });
+            })) as WaitingGameDB;
             
             if (foundWaiting) {
-                const friend: UserDBWithMethods = await User.findById(foundWaiting.authorId);
+                const friend: UserDBWithMethods = (await User.findById(foundWaiting.authorId)) as UserDBWithMethods;
                 const game: GameDB = new GameChat({
                     user1: {
                         id: foundWaiting.authorId,

@@ -1,3 +1,4 @@
+import { UserDBWithMethods } from './../interfaces/mongo-models';
 import mongoose, {Schema} from 'mongoose';
 import {GameDB, GamesInviteDB, UserDB, WaitingGameDB} from '../interfaces/mongo-models';
 import { ReceivedGameInvitesForRes, SentGameInvitesForRes, WaitingGameInvitesForRes } from '../interfaces/response';
@@ -128,20 +129,20 @@ user.methods.getInvites = async function(): Promise<{
 }> {
     const foundWaiting: WaitingGameInvitesForRes[] = [];
     for (let i=0; i<this.waitingGames.length; i++) {
-        const candidate: WaitingGameDB = await WaitingGame.findById(this.waitingGames[i]);
+        const candidate: WaitingGameDB = (await WaitingGame.findById(this.waitingGames[i])) as WaitingGameDB;
         foundWaiting.push(candidate as WaitingGameInvitesForRes);
     }
 
     const foundSent: SentGameInvitesForRes[] = [];
     for (let i=0; i<this.sentGameInvites.length; i++) {
-        const candidate: GamesInviteDB = await GameInvite.findById(this.sentGameInvites[i]);
+        const candidate: GamesInviteDB = (await GameInvite.findById(this.sentGameInvites[i])) as GamesInviteDB;
         const invite = await getSentGameInvite(candidate);
         foundSent.push(invite);
     }
 
     const foundReceived: ReceivedGameInvitesForRes[] = [];
     for (let i=0; i<this.receivedGameInvites.length; i++) {
-        const candidate: GamesInviteDB = await GameInvite.findById(this.receivedGameInvites[i]);            
+        const candidate: GamesInviteDB = (await GameInvite.findById(this.receivedGameInvites[i])) as GamesInviteDB;            
         const invite = await getReceivedGameInvite(candidate);
         foundReceived.push(invite);
     }
@@ -156,19 +157,19 @@ user.methods.getFriends = async function(): Promise<{
 }> {
     const foundFriends: UserForRes[] = [];
     for (let i=0; i<this.friends.length; i++) {
-        const candidate = await User.findById(this.friends[i]);
+        const candidate: UserDBWithMethods = (await User.findById(this.friends[i])) as UserDBWithMethods;
         foundFriends.push(getUser(candidate));
     }
 
     const foundSent: UserForRes[] = [];
     for (let i=0; i<this.sentFriendInvites.length; i++) {
-        const candidate = await User.findById(this.sentFriendInvites[i]);
+        const candidate: UserDBWithMethods = (await User.findById(this.sentFriendInvites[i])) as UserDBWithMethods;
         foundSent.push(getUser(candidate));
     }
 
     const foundReceived: UserForRes[] = [];
     for (let i=0; i<this.receivedFriendInvites.length; i++) {
-        const candidate = await User.findById(this.receivedFriendInvites[i]);
+        const candidate: UserDBWithMethods = (await User.findById(this.receivedFriendInvites[i])) as UserDBWithMethods;
         foundReceived.push(getUser(candidate));
     }
 
@@ -179,7 +180,7 @@ user.methods.getChats = async function(): Promise<ChatForRes[]> {
     const chats: ChatForRes[] = [];
     const chatsToRemove: string[] = [];
     for (let item of this.games) {
-        const chat: GameDB = await GameChat.findById(item);
+        const chat: GameDB = (await GameChat.findById(item)) as GameDB;
         if (chat) {
             const chatForRes = await getChat(chat, this._id);            
             chats.push({gameId: item, ...chatForRes});

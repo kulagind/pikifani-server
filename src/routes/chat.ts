@@ -17,7 +17,7 @@ const router = Router();
 router.get('/', async (req: Request, res: Response) => {
     try {
         const clientId = res.locals._id;
-        const client: UserDBWithMethods = await User.findById(clientId);
+        const client: UserDBWithMethods = (await User.findById(clientId)) as UserDBWithMethods;
         if (!client) {
             res.status(401).json(sendError(401, 'Неавторизованный пользователь'));
         }
@@ -33,7 +33,7 @@ router.get('/', async (req: Request, res: Response) => {
 router.post('/', wordValidators, async (req: Request, res: Response) => {
     try {
         const id = res.locals._id;
-        const user: UserDBWithMethods = await User.findById(id);
+        const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
         if (!user) {
             return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
         }
@@ -46,8 +46,8 @@ router.post('/', wordValidators, async (req: Request, res: Response) => {
         const {inviteId, word} = req.body;
 
         if (inviteId) {
-            const gameInvite: GamesInviteDB = await GameInvite.findByIdAndDelete(inviteId);
-            const friend: UserDBWithMethods = await User.findById(gameInvite.authorId);
+            const gameInvite: GamesInviteDB = (await GameInvite.findByIdAndDelete(inviteId)) as GamesInviteDB;
+            const friend: UserDBWithMethods = (await User.findById(gameInvite.authorId)) as UserDBWithMethods;
             if (gameInvite && friend) {
                 const game: GameDB = new GameChat({
                     user1: {

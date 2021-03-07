@@ -21,7 +21,7 @@ export async function getChat(chat: GameDB, clientId: string): Promise<ChatForRe
         friendId = chat.user1.id;
     }
 
-    const friend: UserDBWithMethods = await User.findById(friendId);
+    const friend: UserDBWithMethods = (await User.findById(friendId)) as UserDBWithMethods;
 
     return {
         word: user.word,
@@ -44,7 +44,7 @@ export async function getResult(chat: GameDB, clientId: string): Promise<GameRes
         friendWord = chat.user1.word;
     }
 
-    const friend: UserDBWithMethods = await User.findById(friendId);
+    const friend: UserDBWithMethods = (await User.findById(friendId)) as UserDBWithMethods;
 
     return {
         word: user.word,

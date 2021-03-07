@@ -1,3 +1,4 @@
+import { UserDBWithMethods } from './../interfaces/mongo-models';
 import { User } from './../models/user';
 import {Request, Response, Router} from 'express';
 import {validationResult} from 'express-validator';
@@ -65,9 +66,9 @@ router.post('/login', authValidators, async (req: Request, res: Response) => {
         const encrypter = Encrypter.getInstanceByPublicKey(publicKey) as Encrypter;
         encrypter.clearKey();
         
-        let user = await User.findOne({name});        
+        let user: UserDBWithMethods = (await User.findOne({name})) as UserDBWithMethods;        
         if (!user) {
-            user = await User.findOne({email: name});
+            user = (await User.findOne({email: name})) as UserDBWithMethods;
         }
 
         const _id = user._id;

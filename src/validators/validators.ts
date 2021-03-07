@@ -1,3 +1,4 @@
+import { UserDBWithMethods } from './../interfaces/mongo-models';
 import {body} from 'express-validator';
 import {User} from '../models/user';
 import bcryptjs from 'bcryptjs';
@@ -89,14 +90,14 @@ export const authValidators = [
         }
 
         const password = encrypter.decrypt(Buffer.from(value, 'base64')) || '';
-        let user = await User.findOne({
+        let user: UserDBWithMethods = (await User.findOne({
             name: req.body.name
-        });
+        })) as UserDBWithMethods;
 
         if (!user) {
-            user = await User.findOne({
+            user = (await User.findOne({
                 email: req.body.name
-            });
+            })) as UserDBWithMethods;
         }
 
         const areSamePasswords = await bcryptjs.compare(password, user.password);

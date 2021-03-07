@@ -22,19 +22,19 @@ export function getFriend(user: UserDBWithMethods): UserForRes {
 }
 
 export const findUserBySomething = async (value: string): Promise<UserDBWithMethods> => {
-    let user = await User.findOne({
+    let user: UserDBWithMethods = (await User.findOne({
         name: value
-    });
+    })) as UserDBWithMethods;
 
     if (!user) {
-        user = await User.findOne({
+        user = (await User.findOne({
             email: value
-        });
+        })) as UserDBWithMethods;
     }
 
     if (!user) {
         try {
-            user = await User.findById(value);
+            user = (await User.findById(value)) as UserDBWithMethods;
         } catch(e) {
             console.log('Friend was not found');
         }

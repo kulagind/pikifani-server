@@ -13,7 +13,7 @@ export class SSEConnection {
         return app.get(url, async (req: Request, res: Response) => {
             try {
                 const id = req.params.id;
-                const user: UserDBWithMethods = await User.findById(id);
+                const user: UserDBWithMethods = (await User.findById(id)) as UserDBWithMethods;
                 if (!user) {
                     return res.status(401).json(sendError(401, 'Неавторизованный запрос'));
                 }
