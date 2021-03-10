@@ -3,5 +3,6 @@ export interface UserForRes {
     name: string,
     email: string,
     winsQuantity: number,
-    gamesQuantity: number
+    gamesQuantity: number,
+    isSub?: boolean
 }

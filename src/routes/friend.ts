@@ -1,3 +1,4 @@
+import { NotificationMessage } from './../models/notification';
 import {Router} from 'express';
 import { UserDBWithMethods } from '../interfaces/mongo-models';
 import { Invite, User } from '../models/user';
@@ -5,6 +6,7 @@ import { sendError } from '../utils/error';
 import { findUserBySomething, getFriend, getUser } from '../utils/user';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
+import { Notification } from '../models/notification';
 
 const router = Router();
 
@@ -31,6 +33,8 @@ router.post('/', async (req, res) => {
             const friendFriends = await friend.getFriends();
             SSEConnection.send(user._id.toString(), {type: SSEType.friends, payload: userFriends});
             SSEConnection.send(friend._id.toString(), {type: SSEType.friends, payload: friendFriends});
+
+            Notification.send(friend.sub, new NotificationMessage('Заявка в друзья', `Запрос от ${user.name}`));
 
             return res.status(201).json({});
         }

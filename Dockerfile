@@ -12,6 +12,6 @@ RUN tsc -p .
 RUN mkdir -p /usr/src/app/dist/assets
 COPY ["src/assets", "./dist/assets"]
 
-EXPOSE 8000
+EXPOSE 8000 8001
 
 CMD ["node", "dist/app.js"]

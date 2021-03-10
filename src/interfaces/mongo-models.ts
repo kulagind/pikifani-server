@@ -13,6 +13,7 @@ export interface UserDB extends Document {
     winsQuantity: number,
     friends: UserDB['_id'][],
     games: GameDB['_id'][],
+    sub?: any,
     receivedGameInvites: GamesInviteDB['_id'][],
     sentGameInvites: GamesInviteDB['_id'][],
     receivedFriendInvites: UserDB['_id'][],
@@ -30,6 +31,8 @@ export interface UserDBWithMethods extends UserDB, Document {
     getFriends(): Promise<any>;
     getChats(): Promise<any>;
     removeChat(id: string): Promise<UserDB>;
+    subscribeToPush(sub: any): Promise<UserDB>;
+    unsubscribeFromPush(): Promise<UserDB>;
 }
 
 export interface GamesInviteDB extends Document {

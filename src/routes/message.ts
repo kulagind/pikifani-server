@@ -11,6 +11,7 @@ import { validationResult } from 'express-validator';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
 import { getUser } from '../utils/user';
+import { Notification, NotificationMessage } from '../models/notification';
 
 const router: Router = Router();
 
@@ -112,6 +113,8 @@ router.post('/:id', wordValidators, async (req: Request, res: Response) => {
         };
         SSEConnection.send(user._id.toString(), {type: SSEType.game, payload: openedUserChat});
         SSEConnection.send(friend._id.toString(), {type: SSEType.game, payload: openedFriendChat});
+
+        Notification.send(friend.sub, new NotificationMessage('Твоя очередь ходить', `${user.name} написал слово '${word}'`));
 
         res.status(201).json({});
     } catch(e) {

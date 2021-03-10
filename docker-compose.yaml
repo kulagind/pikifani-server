@@ -1,7 +1,7 @@
 version: "3"
 
 volumes: 
-  mongodb_volume: 
+  mongodb_volume:
 
 services:
   mongodb:
@@ -28,6 +28,7 @@ services:
     restart: always
     ports:
       - 8000:8000
+      - 8001:8001
     depends_on:
       - mongodb
       - mysql

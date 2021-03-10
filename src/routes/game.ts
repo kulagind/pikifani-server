@@ -12,6 +12,7 @@ import { randomNumber } from '../utils/random-int';
 import { ChatForRes, getChat } from '../utils/chat';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
+import { Notification, NotificationMessage } from '../models/notification';
 
 const router = Router();
 
@@ -64,6 +65,8 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
                 SSEConnection.send(user._id.toString(), {type: SSEType.invites, payload: invitesUser});
                 SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
 
+                Notification.send(friend.sub, new NotificationMessage('Давай сыграем?', `Запрос от ${user.name}`));
+
                 return res.status(201).json(gameInvite);
             }
             return res.status(422).json(sendError(422, 'Друг не найден'));
@@ -101,6 +104,8 @@ router.post('/create', wordValidators, async (req: Request, res: Response) => {
                 const friendChats: ChatForRes[] = await friend.getChats();
                 SSEConnection.send(user._id.toString(), {type: SSEType.games, payload: userChats});
                 SSEConnection.send(friend._id.toString(), {type: SSEType.games, payload: friendChats});
+
+                Notification.send(friend.sub, new NotificationMessage('Игра началась', `Начало партии с ${user.name}`));
 
                 return res.status(201).json(getChat(game, id));
             } else {

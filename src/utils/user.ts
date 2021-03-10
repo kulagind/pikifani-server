@@ -9,6 +9,7 @@ export function getUser(user: UserDB): UserForRes {
         email: user.email,
         winsQuantity: user.winsQuantity,
         gamesQuantity: user.gamesQuantity,
+        isSub: user.sub ? true : false
     };
 }
 

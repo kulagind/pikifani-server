@@ -42,6 +42,10 @@ const user: Schema<UserDB> = new Schema({
         type: Number,
         required: true
     },
+    sub: {
+        type: Object,
+        required: false
+    },
     friends: {
         type: [Schema.Types.ObjectId],
         required: true
@@ -191,6 +195,18 @@ user.methods.getChats = async function(): Promise<ChatForRes[]> {
     this.games = this.games.filter(game => !chatsToRemove.includes(game.toString()));
     await this.save();
     return chats;
+}
+
+user.methods.subscribeToPush = function(sub: any): Promise<UserDB> {
+    this.sub = sub;
+    return this.save();
+}
+
+user.methods.unsubscribeFromPush = function(): Promise<UserDB> {
+    if (this.sub) {
+        delete this.sub;
+    }
+    return this.save();
 }
 
 export const User = mongoose.model<UserDB>('User', user);

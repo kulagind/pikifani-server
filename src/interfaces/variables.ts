@@ -6,5 +6,6 @@ export interface Variables {
         USER_NAME: string,
         USER_PASSWORD: string,
     },
-    PORT: number
+    PORT: number,
+    SSL_PORT: number,
 }

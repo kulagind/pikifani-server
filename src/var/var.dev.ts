@@ -8,7 +8,8 @@ const variables: Variables = {
         USER_PASSWORD: 'admin',
         HOST: 'mysql',
     },
-    PORT: 8000
+    PORT: 8000,
+    SSL_PORT: 8001
 };
 
 export default variables;

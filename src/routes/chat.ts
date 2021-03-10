@@ -11,6 +11,7 @@ import { GameInvite } from '../models/game';
 import { randomNumber } from '../utils/random-int';
 import { SSEConnection } from '../models/sse';
 import { SSEType } from '../interfaces/sse';
+import { Notification, NotificationMessage } from '../models/notification';
 
 const router = Router();
 
@@ -79,6 +80,8 @@ router.post('/', wordValidators, async (req: Request, res: Response) => {
                 const invitesFriend = await friend.getInvites();
                 SSEConnection.send(user._id.toString(), {type: SSEType.invites, payload: invitesUser});
                 SSEConnection.send(friend._id.toString(), {type: SSEType.invites, payload: invitesFriend});
+
+                Notification.send(friend.sub, new NotificationMessage('Игра началась', `Начало партии с ${user.name}`));
 
                 return res.status(201).json(responseJson);
             }
