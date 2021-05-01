@@ -78,15 +78,21 @@ gameChat.methods.sendMessage = async function(authorId: string, word: string): P
 
     let p: number = 0;
     let f: number = 0;
+    let i: number = 0;
+    let j: number = 0;
+
+    const word1 = opponent.word.split('');
+    const word2 = word.split('');
     
-    for (let i=0, j=0; j<opponent.word.length; i++) {        
-        if (opponent.word[i] === word[j] && i === j) {
-            p++;
-        }        
-        if (opponent.word[i] === word[j] && i !== j) {
-            f++;
+    for (;j < word2.length; i++) {        
+        if (word1[i] === word2[j]) {
+            if (i === j) {
+                p++;
+            } else {
+                f++;
+            }
         }
-        if (i === (opponent.word.length - 1)) {
+        if (i === (word2.length - 1)) {
             j++;
             i = 0;
         }

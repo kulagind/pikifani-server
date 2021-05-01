@@ -20,8 +20,8 @@ import { Notification } from './models/notification';
 const app: Application = express();
 
 const options = {
-    key: fs.readFileSync('assets/cert/server.key'),
-    cert: fs.readFileSync('assets/cert/server.crt')
+    key: fs.readFileSync(VARIABLES.SSL_KEY),
+    cert: fs.readFileSync(VARIABLES.SSL_CERT)
 };
 
 app.use(cors());
@@ -39,7 +39,7 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/invites', gameInvitesRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/chat', messageRoutes);
-app.use('/api/notification', notificationRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use(SSEConnection.create('/api/sse/:id'));
 
 const PORT = process.env.PORT || VARIABLES.PORT;

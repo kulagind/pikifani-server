@@ -8,4 +8,9 @@ export interface Variables {
     },
     PORT: number,
     SSL_PORT: number,
+    SSL_CERT: string,
+    SSL_KEY: string,
+    VAPID_PUBLIC: string,
+    VAPID_PRIVATE: string,
+    DOMAIN: string
 }

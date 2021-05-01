@@ -204,7 +204,7 @@ user.methods.subscribeToPush = function(sub: any): Promise<UserDB> {
 
 user.methods.unsubscribeFromPush = function(): Promise<UserDB> {
     if (this.sub) {
-        delete this.sub;
+       this.sub = {};
     }
     return this.save();
 }

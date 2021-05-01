@@ -1,5 +1,7 @@
-import {sendNotification, setVapidDetails, PushSubscription} from 'web-push';
+import webPush, {PushSubscription} from 'web-push';
 import { NotificationPayload } from '../interfaces/notification';
+import VARIABLES from '../var/var';
+import fs from 'fs';
 
 export class Notification {
     protected static readonly KEYS = {
@@ -8,17 +10,17 @@ export class Notification {
     };
 
     public static init(): void {
-        setVapidDetails(
-            'mailto:game@pikifani.ru',
-            Notification.KEYS.public,
-            Notification.KEYS.private
+        webPush.setVapidDetails(
+            `http://pikifani.ru`,
+            Notification.KEYS.public, // fs.readFileSync(public).toString()
+            Notification.KEYS.private // fs.readFileSync(private).toString()
         );
     }
 
-    public static send(sub: PushSubscription | null = null, payload: NotificationPayload): void {
-        if (sub) {
-            sendNotification(sub, JSON.stringify(payload))
-                .catch(err => {console.log("Error sending notification, reason: ", err);});   
+    public static send(sub: PushSubscription | {} = {}, payload: NotificationPayload): void {
+        if (Object.getOwnPropertyNames(sub).length) {
+            webPush.sendNotification(sub as PushSubscription, JSON.stringify(payload))
+                .catch(err => {console.log("Error sending notification, reason: ", err)});   
         }
     }
 }

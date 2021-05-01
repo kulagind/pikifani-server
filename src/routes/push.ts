@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
 
         await user.subscribeToPush(sub);
 
-        return res.status(201).json(getUser(user));
+        return res.status(200).json(getUser(user));
     } catch(e) {
         console.log(e);
     }
@@ -38,7 +38,7 @@ router.delete('/', async (req, res) => {
         
         await user.unsubscribeFromPush();
 
-        return res.status(204).json(getUser(user));
+        return res.status(200).json(getUser(user));
     } catch(e) {
         console.log(e);
     }
